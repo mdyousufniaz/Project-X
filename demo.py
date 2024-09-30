@@ -1,20 +1,21 @@
-from textual import on
 from textual.app import App, ComposeResult
-from textual.widgets import Button
+from textual.widgets import Placeholder, TabbedContent, TabPane
 
 
-class MyButton(Button):
-    pass
+class MinimalApp(App[None]):
+    CSS = """
+        Placeholder {
+            width: 1fr;
+            height: 1fr;
+        }
+    """
 
-
-class MyApp(App[None]):
     def compose(self) -> ComposeResult:
-        yield Button("Normal Button")
+        with TabbedContent():
+            with TabPane("First tab"):
+                yield Placeholder("This is a minimal app.")
+            with TabPane("Second tab"):
+                yield Placeholder("Another tab.")
 
-    @on(MyButton.Pressed)
-    def notify_on_press_my_button(self) -> None:
-        self.notify("MyButton.Pressed matched!")
 
-
-if __name__ == "__main__":
-    MyApp().run()
+MinimalApp().run()

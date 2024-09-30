@@ -7,6 +7,10 @@ from widgets import FunctionCard
 
 class BooleanExpressionGenerator(App):
 
+    BINDINGS = [
+        ("c", "check", "Check")
+    ]
+
     TITLE = "Boolean Expression Generator"
     SUB_TITLE = "An App to generate boolean Functions!"
 
@@ -20,8 +24,19 @@ class BooleanExpressionGenerator(App):
                     width: 50%;
                 }
             }
+
+            #default {
+                background: $boost;
+                text-align: center;
+                height: 90h;
+                content-align: center middle;
+                color: $text-muted;
+            }
         }
     """
+    default_message = Static("There is Nothing to Display !", id="default")
+
+
 
     def compose(self):
         yield Header()
@@ -29,19 +44,28 @@ class BooleanExpressionGenerator(App):
             with TabPane("Trems", id="terms"):
                 with VerticalScroll():
                     with Horizontal(id="term-header"):
-                        yield Select.from_values(range(1, 11), prompt="Select the number of Literals")
+                        yield Select.from_values(range(2, 11), prompt="Select the number of Literals")
                         yield Button("Add Function Card", variant="success", id="add")
-                    yield Center()
+                    with Center(id="func-body"):
+                        yield self.default_message 
                         
             with TabPane("Boolean Expression", id="boolean-exp"):
                 yield Placeholder("Bool")
-            with TabPane("Truth Table", id="truth-table"):
-                yield Placeholder("Truth Table")
         yield Footer()
+
+    def func_cards(self):
+        return self.query_one(Center).query(FunctionCard)
 
     @on(Button.Pressed, "#add")
     def add_function_card(self):
+        if not self.func_cards():
+            self.query_one(Center).remove_children()
         self.query_one(Center).mount(FunctionCard())
+    
+    async def on_function_card_delete(self, message):
+        await message.func_card.remove()
+        if not self.func_cards():
+            self.query_one(Center).mount(self.default_message)
 
 if __name__ == "__main__":
     BooleanExpressionGenerator().run()
