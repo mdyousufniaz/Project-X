@@ -1,43 +1,20 @@
-from textual.app import App
-from textual.widget import Widget
-from textual.widgets import Static
-from textual.events import MouseDown, MouseUp, Click
-
-class CustomButton(Widget):
-    DEFAULT_CSS = """
-        CustomButton {
-            background: $accent;
-            height: auto;
-            width: auto;
-            padding: 0 2;
-            outline-left: thick blue;
-            outline-right: thick blue;
-            Static {
-                height: auto;
-                width: auto;
-            }
-        }
-    """
-
-    def compose(self):
-        yield Static("Test")
-
-    # Handle MouseDown event
-    def on_mouse_down(self, event: MouseDown) -> None:
-        self.app.log("Mouse Down on CustomButton!")
-
-    # Handle MouseUp event
-    def on_mouse_up(self, event: MouseUp) -> None:
-        self.app.log("Mouse Up on CustomButton!")
-
-    # Handle Click event
-    def on_click(self, event: Click) -> None:
-        self.app.log("CustomButton Clicked!")
+from textual import on
+from textual.app import App, ComposeResult
+from textual.widgets import Button
 
 
-class MyApp(App):
-    def compose(self):
-        yield CustomButton()
+class MyButton(Button):
+    pass
 
 
-MyApp().run()
+class MyApp(App[None]):
+    def compose(self) -> ComposeResult:
+        yield Button("Normal Button")
+
+    @on(MyButton.Pressed)
+    def notify_on_press_my_button(self) -> None:
+        self.notify("MyButton.Pressed matched!")
+
+
+if __name__ == "__main__":
+    MyApp().run()

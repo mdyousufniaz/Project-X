@@ -1,6 +1,7 @@
-from textual.containers import Center, Vertical, Horizontal, Middle
-from textual.widgets import Static, Input
+from textual.containers import Center, Vertical, Horizontal, Container
+from textual.widgets import Static, Input, Button
 from textual.widget import Widget
+from textual import on
 
 class CustomInput(Widget):
 
@@ -17,14 +18,14 @@ class CustomInput(Widget):
             }
 
             Input {
-                width: 50%
+                width: 80%;
             }
         }
     """
 
-    def __init__(self, label, placeholder, optional = True):
+    def __init__(self, label, placeholder, required = True):
         label += ' '
-        if not optional:
+        if required:
             label += '*'
 
         self.label = label
@@ -36,32 +37,56 @@ class CustomInput(Widget):
             yield Static(self.label)
             yield self.input
 
-class Function(Vertical):
+class FunctionCard(Vertical):
 
     DEFAULT_CSS = """
-        Function {
-            #test {
-                background: green;
+        FunctionCard {
+            background: $boost;
+            height: auto;
+            width: 60%;
+            margin-bottom: 1;
+            Horizontal {
+                background: $panel;
+                height: auto;
+                width: 100%;
+                align-horizontal: right;
+                padding: 0 2;
                 Static {
-                    background: red;
-                    width: auto;
-                }
+                        dock: left;
+                        width: auto;
+                        text-style: bold;
+                        color: $warning;
+                        height: 100%;
+                        content-align: left middle;
+                    }
+                
+            }
+
+            #footnote {
+                color: $error;
+                padding-right: 1;
+                text-style: italic;
+                text-align: right;
+                height: auto;
             }
         }
     """
 
     def __init__(self):
         self.func_name = CustomInput("Function Name", "Enter the name of the function eg: X, Y, Z")
-        self.min_terms = CustomInput("Minterms", "1-3, 4-6, 7, 10...", False)
-        self.dont_care_terms = CustomInput("Don't Care Terms", "11-13, 14-16, 17, 20...")
+        self.min_terms = CustomInput("Minterms", "1-3, 4-6, 7, 10...")
+        self.dont_care_terms = CustomInput("Don't Care Terms", "11-13, 14-16, 17, 20...", False)
         super().__init__()
     
     def compose(self):
-        with Center():
-            with Center(id="test"):
+            with Horizontal():
                 yield Static("Function Card")
-                yield Static("Delete")
+                yield Button("Delete", variant="error", id="delete")
             yield self.func_name
             yield self.min_terms
             yield self.dont_care_terms
+            yield Static("* required", id="footnote")
 
+    @on(Button.Pressed, "#delete")
+    def delete_function_card(self):
+        self.remove()
