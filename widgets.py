@@ -1,48 +1,32 @@
-from textual.containers import Center, Vertical, Horizontal, Container
-from textual.widgets import Static, Input, Button
+from textual.app import ComposeResult
+from textual.containers import Center, Vertical, Horizontal, Grid
+from textual.widgets import Static, Input, Button, Label
 from textual.widget import Widget
 from textual.message import Message
 from textual import on
 
-class CustomInput(Widget, can_focus = True):
+class CustomInput(Input):
 
-    DEFAULT_CSS = """
-        CustomInput {
-            content-align: center middle;
-            margin: 1;
-            height: auto;
-            
-            Static {
-                # background: blue;
-                content-align: center middle;
-                width: auto;
-            }
-
-            Input {
-                width: 80%;
-            }
-        }
+    """
+    A Custom widget Class of reciveing input from user with a Label and a required option.
     """
 
-    def __init__(self, label, placeholder, optional = True, max_length = 0):
-        label += ' '
-        if not optional:
-            label += '*'
+    DEFAULT_CSS = """
+    CustomInput {
+        border: solid $primary;
+    }
+    """
 
-        self.label = label
-        self.input = Input(placeholder=placeholder, max_length=max_length)
-        super().__init__()
+    def __init__(self, label: str, placeholder: str = '', required = False) -> None:
+        """
+        Initializer of Custom Input Class
+        """
 
-    def compose(self):
-        with Center():
-            yield Static(self.label)
-            yield self.input
+        if required:
+            label += " *" # adding required symbol
+        self.border_title = label
 
-    def on_focus(self):
-        self.input.focus()
-    
-    def value(self):
-        return self.input.value
+        super().__init__(placeholder=placeholder)
 
 class FunctionCard(Vertical):
 
