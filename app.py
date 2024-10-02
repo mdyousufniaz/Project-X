@@ -6,10 +6,10 @@ from textual import on
 from widgets import FunctionCard
 
 class BooleanExpressionGenerator(App):
-
-    BINDINGS = [
-        ("c", "check", "Check")
-    ]
+    """
+    A Textual App that takes Functions truth value as input and gives boolean expression as output.
+    It can also show the coressponding truth table acrroding to input and output.
+    """
 
     TITLE = "Boolean Expression Generator"
     SUB_TITLE = "An App to generate boolean Functions!"
