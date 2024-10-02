@@ -1,11 +1,12 @@
 from textual.app import ComposeResult
-from textual.containers import Center, Vertical, Horizontal, Grid
-from textual.widgets import Static, Input, Button, Label
+from textual.containers import Center, Vertical, Horizontal, Middle
+from textual.widgets import Static, Input, Button, Label, Pretty
 from textual.widget import Widget
 from textual.message import Message
 from textual import on
+from textual.validation import Validator, ValidationResult
 
-class CustomInput(Input):
+class CustomInput(Center):
 
     """
     A Custom widget Class of reciveing input from user with a Label and a required option.
@@ -13,20 +14,33 @@ class CustomInput(Input):
 
     DEFAULT_CSS = """
     CustomInput {
-        border: solid $primary;
+        background: $boost;
     }
     """
 
     def __init__(self, label: str, placeholder: str = '', required = False) -> None:
-        """
-        Initializer of Custom Input Class
+        """Initializer of the CustomInput Class
+
+        Args:
+            label (str): The label for the Custom Input.
+            placeholder (str, optional): placeholder for the custom input. Defaults to ''.
+            required (bool, optional): The input is requied or not. Defaults to False.
         """
 
         if required:
             label += " *" # adding required symbol
-        self.border_title = label
 
-        super().__init__(placeholder=placeholder)
+        super().__init__(
+            Label(label),
+            Input(placeholder=placeholder, valid_empty=not required)
+        )
+
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if not event.value:
+            self.app.notify("Input can not be empty!")
+
+
 
 class FunctionCard(Vertical):
 
