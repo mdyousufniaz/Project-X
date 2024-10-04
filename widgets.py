@@ -1,22 +1,44 @@
+from __future__ import annotations
+
 from textual.app import ComposeResult
 from textual.containers import Center, Vertical, Horizontal, Middle
 from textual.widgets import Static, Input, Button, Label, Pretty
 from textual.widget import Widget
 from textual.message import Message
 from textual import on
-from textual.validation import Validator, ValidationResult
+from textual.events import Key
+from textual.validation import Function
 
-class CustomInput(Center):
+
+class NotifyMaxLengthInput(Input):
+    
+    def on_key(self, event: Key) -> None:
+        if (self.max_length
+             and len(self.value) == self.max_length
+             and event.is_printable
+        ):
+            self.notify(
+                f"Input can not exceed {self.max_length} characters!",
+                title="Max Length Warning",
+                severity="warning"
+            )
+
+class LabeledInput(Center):
 
     """
     A Custom widget Class of reciveing input from user with a Label and a required option.
     """
 
     DEFAULT_CSS = """
-    CustomInput {
+    LabeledInput {
         background: $boost;
+        margin: 1;
+        Label {
+            text-style: italic;
+        }
     }
     """
+
 
     def __init__(self, label: str, placeholder: str = '', required = False) -> None:
         """Initializer of the CustomInput Class
@@ -27,94 +49,114 @@ class CustomInput(Center):
             required (bool, optional): The input is requied or not. Defaults to False.
         """
 
-        if required:
+        self.required: bool = required
+        if self.required:
             label += " *" # adding required symbol
 
         super().__init__(
             Label(label),
-            Input(placeholder=placeholder, valid_empty=not required)
+            NotifyMaxLengthInput(
+                placeholder=placeholder,
+                validators=[
+                    Function(lambda value: value != '')
+                ] if required else None
+            )
         )
+    
+    def is_empty(self) -> bool:
+        input = self.query_exactly_one(NotifyMaxLengthInput)
+        if input.value:
+            return False
+
+        input.focus()
+        self.notify(
+                "The Value of the Input can't be Empty!",
+                title="Empty Error",
+                severity="error"
+            )
+        return True
+
+     
 
 
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        if not event.value:
-            self.app.notify("Input can not be empty!")
+
+class FunctionNameInput(LabeledInput):
+    """A Custom Name Input class to receive the function name"""
 
 
+    def __init__(self) -> None:
+        super().__init__("Function Name", "Name of the function like X, Y, Z", True)
+    
+    def on_mount(self) -> None:
+        self.query_exactly_one(NotifyMaxLengthInput).max_length = 5
 
-class FunctionCard(Vertical):
+    def is_valid(self) -> bool:
+        return not self.is_empty()
+
+
+class TermInput(LabeledInput):
+    ...
+    
+
+
+class FunctionCard(Center):
+    """A class for a custom widget to receive function credentials from user."""
 
     DEFAULT_CSS = """
         FunctionCard {
-            background: $boost;
-            height: auto;
-            width: 60%;
-            margin-bottom: 1;
-            Horizontal {
+            Vertical {
                 background: $panel;
+                width: 70%;
                 height: auto;
-                width: 100%;
-                align-horizontal: right;
-                padding: 0 2;
-                Static {
-                        dock: left;
-                        width: auto;
-                        text-style: bold;
-                        color: $warning;
-                        height: 100%;
-                        content-align: left middle;
+                margin: 1;
+                padding-top: 1;
+                Horizontal {
+                    height: 3;
+                    padding-left: 2;
+                    align-vertical: middle;
+
+                    Label {
+                        color: $secondary;
                     }
-                
+
+                    Button {
+                        dock: right;
+                    }
+                }
+
+                #footnote {
+                    text-align: right;
+                    text-style: italic;
+                    padding-right: 1;
+                    background: $primary-background;
+                }
             }
 
-            #footnote {
-                color: $error;
-                padding-right: 1;
-                text-style: italic;
-                text-align: right;
-                height: auto;
+            Vertical:focus-within {
+                border: ascii $success;
             }
         }
     """
 
+    def compose(self) -> ComposeResult:
+        with Vertical():
+            with Horizontal():
+                yield Label("Function Card")
+                yield Button("Delete", variant="error")
+            yield FunctionNameInput()
+            yield TermInput("Min Terms", "terms like 1 - 3, 4 - 7, 8, 10", True)
+            yield TermInput("Don't Care Terms", "terms like 10 - 13, 14 - 16, 18")
+            yield Static("* required", id="footnote")
+
     class Delete(Message):
 
-        def __init__(self, func_card):
+        def __init__(self, func_card: FunctionCard) -> None:
             self.func_card = func_card
             super().__init__()
 
-    def __init__(self):
-        self.func_name = CustomInput("Function Name", "Enter the name of the function eg: X, Y, Z",optional=False, max_length=5)
-        self.min_terms = CustomInput("Minterms", "1-3, 4-6, 7, 10...")
-        self.dont_care_terms = CustomInput("Don't Care Terms", "11-13, 14-16, 17, 20...")
-        super().__init__()
-    
-    def compose(self):
-            with Horizontal():
-                yield Static("Function Card")
-                yield Button("Delete", variant="error", id="delete")
-            yield self.func_name
-            yield self.min_terms
-            yield self.dont_care_terms
-            yield Static("* required", id="footnote")
 
-    def check_func_name(self):
-        if not self.func_name.value():
-            self.func_name.focus()
-            self.app.notify("Please Enter a valid Function Name!")
-    
-    def check_min_terms(self):
-        if not self.min_terms.value():
-            return False
+    def on_button_pressed(self) -> None:
+        self.post_message(self.Delete(self))
 
-
-    def check_input_values(self):
-        # checking func_name
-        if not self.func_name.value():
-            return False
-        
-
-    @on(Button.Pressed, "#delete")
-    def send_delete_message(self):
-        # self.post_message(self.Delete(self))
-        self.check_func_name()
+    def is_valid(self) -> bool:
+        return self.query_exactly_one(FunctionNameInput).is_valid()
