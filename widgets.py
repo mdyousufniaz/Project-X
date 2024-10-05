@@ -9,6 +9,8 @@ from textual import on
 from textual.events import Key
 from textual.validation import Function
 
+from validator_functions import is_valid_term
+
 
 class NotifyMaxLengthInput(Input):
     
@@ -95,8 +97,11 @@ class FunctionNameInput(LabeledInput):
 
 
 class TermInput(LabeledInput):
-    ...
-    
+
+    def on_mount(self) -> None:
+        self.query_exactly_one(NotifyMaxLengthInput).validators.append(
+            Function(is_valid_term)
+        )
 
 
 class FunctionCard(Center):
