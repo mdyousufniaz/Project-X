@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from textual.app import ComposeResult
-from textual.containers import Center, Vertical, Horizontal, Middle
+from textual.containers import Center, Vertical, Horizontal, Container
 from textual.widgets import Static, Input, Button, Label, Pretty
 from textual.widget import Widget
 from textual.message import Message
@@ -25,7 +25,7 @@ class NotifyMaxLengthInput(Input):
                 severity="warning"
             )
 
-class LabeledInput(Center):
+class LabeledInput(Container):
 
     """
     A Custom widget Class of reciveing input from user with a Label and a required option.
@@ -35,9 +35,9 @@ class LabeledInput(Center):
     LabeledInput {
         background: $boost;
         margin: 1;
-        Label {
-            text-style: italic;
-        }
+        border-title-style: italic;
+        height: auto;
+        border: blank white;
     }
     """
 
@@ -56,7 +56,6 @@ class LabeledInput(Center):
             label += " *" # adding required symbol
 
         super().__init__(
-            Label(label),
             NotifyMaxLengthInput(
                 placeholder=placeholder,
                 validators=[
@@ -64,6 +63,8 @@ class LabeledInput(Center):
                 ] if required else None
             )
         )
+
+        self.border_title = label
     
     def is_empty(self) -> bool:
         input = self.query_exactly_one(NotifyMaxLengthInput)
@@ -99,9 +100,7 @@ class FunctionNameInput(LabeledInput):
 class TermInput(LabeledInput):
 
     def on_mount(self) -> None:
-        self.query_exactly_one(NotifyMaxLengthInput).validators.append(
-            Function(is_valid_term)
-        )
+        self.query_exactly_one(NotifyMaxLengthInput).validators.append(Function(is_valid_term))
 
 
 class FunctionCard(Center):

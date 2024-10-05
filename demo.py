@@ -1,5 +1,5 @@
 from textual.app import App
-from widgets import FunctionCard
+from widgets import LabeledInput
 
 class MyApp(App):
 
@@ -8,7 +8,7 @@ class MyApp(App):
     """
 
     def compose(self):
-        yield FunctionCard()
+        yield LabeledInput('Hello')
 
 MyApp().run()
 
