@@ -2,15 +2,63 @@ from __future__ import annotations
 
 from textual.app import ComposeResult
 from textual.containers import Center, Vertical, Horizontal, Container
-from textual.widgets import Static, Input, Button, Label, Pretty
+from textual.widgets import Static, Input, Button, Label, Markdown
 from textual.widget import Widget
 from textual.message import Message
 from textual import on
 from textual.events import Key
 from textual.validation import Function
 
-from validator_functions import is_valid_term
+from validator_functions import is_valid_term, convert_number
 
+class BEGWelcome(Static):
+
+    WELCOME_MD = """
+# Welcome to **Boolean Expression Generator** App!
+
+### *Features*:
+- Add as many functions as you want.
+- Validate before generating functions.
+- Generate Truth Tables instantly.
+
+### *Key Shortcuts*:
+- `ctrl+a`: Add new Function Card
+- `ctrl+r`: Reset to default
+- `ctrl+g`: Generate Functions and Truth Table
+"""
+
+    DEFAULT_CSS = """
+        BEGWelcome {
+            margin: 1;
+            padding-top: 1;
+            padding-bottom: -1;
+            border: panel $primary;
+            
+            Markdown {
+                background: $boost;
+                padding: -1 2 0 2;
+            }
+
+            Button {
+                width: 100%;
+                margin: 1;
+            }
+        }
+    """
+
+    class GetStarted(Message):
+
+        def __init__(self) -> None:
+            super().__init__()
+
+    def compose(self) -> ComposeResult:
+        yield Markdown(self.WELCOME_MD)
+        yield Button("Get Statrted", "primary")
+
+    def on_button_pressed(self) -> None:
+        self.post_message(self.GetStarted())
+
+    
 
 class NotifyMaxLengthInput(Input):
     
@@ -65,6 +113,7 @@ class LabeledInput(Container):
         )
 
         self.border_title = label
+
     
     def is_empty(self) -> bool:
         input = self.query_exactly_one(NotifyMaxLengthInput)
@@ -102,6 +151,60 @@ class TermInput(LabeledInput):
     def on_mount(self) -> None:
         self.query_exactly_one(NotifyMaxLengthInput).validators.append(Function(is_valid_term))
 
+    def check_value(self, value: str) -> bool:
+        if value:
+            for term in value.split(','):
+                if term.find('-') != -1:
+                    num1, num2 = term.split('-')
+                    num1 = convert_number(num1)
+                    num2 = convert_number(num2)
+
+                    if None in (num1, num2):
+                        self.notify(
+                            f"({term}) doesn't contain valid integer(s)!",
+                            title="Invalid Integer Error",
+                            severity="error"
+                        )
+                        return False
+                    
+                    if num1 < 0 or num2 < 0:
+                        self.notify(
+                            f"({term}) contains negative integer(s)!",
+                            title="Negative Integer integer",
+                            severity="error"
+                        )
+                        return False
+
+                    if num1 > num2:
+                        self.notify(
+                            f"({term}) contains a invalid range!",
+                            title="Invalid Range Error",
+                            severity="error"
+                        )
+                        return False
+  
+                else:
+                    num = convert_number(term)
+                    if num == None:
+                        self.notify(
+                            f"({num}) isn't a valid integer!",
+                            title="Invalid Integer Error",
+                            severity="error"
+                        )
+                        return False
+                    
+                    if num < 0:
+                        self.notify(
+                            f"({num}) is a negative integer!",
+                            title="Negative Integer integer",
+                            severity="error"
+                        )
+                        return False
+                    
+        return True
+
+    def is_valid(self) -> bool:
+        ...
 
 class FunctionCard(Center):
     """A class for a custom widget to receive function credentials from user."""

@@ -1,5 +1,6 @@
 from textual.app import App
-from widgets import LabeledInput
+from widgets import BEGWelcome
+from textual.widgets import Welcome
 
 class MyApp(App):
 
@@ -8,7 +9,8 @@ class MyApp(App):
     """
 
     def compose(self):
-        yield LabeledInput('Hello')
+        yield BEGWelcome()
+        # yield Welcome()
 
 MyApp().run()
 

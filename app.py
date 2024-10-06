@@ -1,11 +1,11 @@
 from textual.app import App, ComposeResult
 from textual.widgets import TabbedContent, TabPane, Button, Placeholder, Header, Footer, Static, Select
-from textual.containers import VerticalScroll, Center, Horizontal, Vertical
+from textual.containers import ScrollableContainer, Center, Horizontal, Vertical
 from textual import on
 from textual.binding import Binding
-from textual.css.query import DOMQuery
+from textual.css.query import DOMQuery, NoMatches
 
-from widgets import FunctionCard
+from widgets import FunctionCard, BEGWelcome
 
 class BooleanExpressionGenerator(App):
     """
@@ -35,36 +35,50 @@ class BooleanExpressionGenerator(App):
         yield Header()
         with TabbedContent():
             with TabPane("Terms", id="terms"):
-                with VerticalScroll():
-                    yield Select.from_values(
-                        range(2, 11),
-                        prompt="Select Number of literals"
-                    )
+                with ScrollableContainer(id="term-body"):
+                    yield BEGWelcome()
 
             with TabPane("Boolean Expression", id="boolean-exp"):
                 yield Placeholder("Bool")
         yield Footer()
 
-    def action_add_function_card(self) -> None:
-        self.query_exactly_one(VerticalScroll).mount(FunctionCard())
+    def term_body(self) -> DOMQuery[ScrollableContainer]:
+        return self.query_exactly_one("#term-body", ScrollableContainer)
+    
+    def welcome(self) -> DOMQuery[BEGWelcome] | None:
+        try:
+            return self.term_body().query_exactly_one(BEGWelcome)
+        except NoMatches:
+            return None
 
-    def on_function_card_delete(self, event: FunctionCard.Delete) -> None:
-        event.func_card.remove()
+
+    def action_add_function_card(self) -> None:
+        welcome_widget = self.welcome()
+        if welcome_widget:
+            welcome_widget.remove()
+
+        new_func_card = FunctionCard()
+        self.term_body().mount(new_func_card)
+        new_func_card.scroll_visible()
+
+    async def on_function_card_delete(self, event: FunctionCard.Delete) -> None:
+        await event.func_card.remove()
+        
+        if self.func_cards():
+            self.func_cards().last().scroll_visible()
+        else:
+            self.term_body().mount(BEGWelcome())
 
     def func_cards(self) -> DOMQuery[FunctionCard]:
         return self.query(FunctionCard)
     
     def action_reset_terms_tab(self) -> None:
-        select: Select = self.query_exactly_one(Select)
-
-        if not select.is_blank():
-            select.clear()
-        if select.expanded:
-            select.expanded = False
 
         func_cards = self.func_cards()
         if func_cards:
             func_cards.remove()
+            self.term_body().mount(BEGWelcome())
+        
 
     def action_generate_functions(self) -> None:
         valid: bool = True
@@ -74,6 +88,10 @@ class BooleanExpressionGenerator(App):
                 valid = False
                 break
 
+    
+    def on_begwelcome_get_started(self) -> None:
+        self.query_exactly_one(BEGWelcome).remove()
+        self.action_add_function_card()
 
     
 

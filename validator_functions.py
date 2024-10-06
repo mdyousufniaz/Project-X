@@ -14,7 +14,7 @@ def is_valid_term(value: str) -> bool:
                 num1 = convert_number(num1)
                 num2 = convert_number(num2)
 
-                if None in (num1, num2) or num1 > num2:
+                if None in (num1, num2) or num1 < 0 or num2 < 0 or num1 > num2:
                     return False
                 
             else:
