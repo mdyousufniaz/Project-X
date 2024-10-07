@@ -174,7 +174,7 @@ class TermInput(LabeledInput):
                         )
                         return False
 
-                    if num1 > num2:
+                    if num1 >= num2:
                         self.notify(
                             f"({term}) contains a invalid range!",
                             title="Invalid Range Error",
@@ -284,5 +284,24 @@ class FunctionCard(Center):
         
         return False
     
-    def truth_values(self) -> set[int]:
+    def truth_indices(self) -> set[int]:
+        ones_indexes: set[int] = set()
+
+        for term in self.query(TermInput):
+            for literal in term.input().value.split(','):
+                if literal.find('-') != -1:
+                    num1, num2 = literal.split('-')
+                    ones_indexes.update(range(
+                        int(num1),
+                        int(num2) + 1
+                    ))
+
+                else:
+                    ones_indexes.add(int(literal))
+            
+            return ones_indexes
+
+class Function(Static):
+
+    def __init__(self, name: str, ones_indexes: set[int]) -> None:
         ...

@@ -1,2 +1,2 @@
 textual-dev==1.6.1
-
+sympy==1.13.3

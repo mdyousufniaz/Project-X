@@ -88,7 +88,9 @@ class BooleanExpressionGenerator(App):
                 valid = False
                 break
         
-        if valid: self.notify(str(valid))
+        if valid:
+            for func_card in self.func_cards():
+                print(func_card.truth_indices())
 
     
     def on_begwelcome_get_started(self) -> None:
