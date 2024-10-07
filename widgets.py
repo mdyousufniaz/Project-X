@@ -8,6 +8,7 @@ from textual.message import Message
 from textual import on
 from textual.events import Key
 from textual.validation import Function
+from textual.css.query import DOMQuery
 
 from validator_functions import is_valid_term, convert_number
 
@@ -113,14 +114,17 @@ class LabeledInput(Container):
         )
 
         self.border_title = label
+    
+    def input(self) -> DOMQuery[NotifyMaxLengthInput]:
+        return self.query_exactly_one(NotifyMaxLengthInput)
 
     
     def is_empty(self) -> bool:
-        input = self.query_exactly_one(NotifyMaxLengthInput)
-        if input.value:
+
+        if self.input().value:
             return False
 
-        input.focus()
+        self.input().focus()
         self.notify(
                 "The Value of the Input can't be Empty!",
                 title="Empty Error",
@@ -140,7 +144,8 @@ class FunctionNameInput(LabeledInput):
         super().__init__("Function Name", "Name of the function like X, Y, Z", True)
     
     def on_mount(self) -> None:
-        self.query_exactly_one(NotifyMaxLengthInput).max_length = 5
+        self.input().max_length = 5
+        self.input().validators.append(Function(lambda value: value.isidentifier()))
 
     def is_valid(self) -> bool:
         return not self.is_empty()
@@ -149,12 +154,14 @@ class FunctionNameInput(LabeledInput):
 class TermInput(LabeledInput):
 
     def on_mount(self) -> None:
-        self.query_exactly_one(NotifyMaxLengthInput).validators.append(Function(is_valid_term))
+        self.input().validators.append(Function(is_valid_term))
 
-    def check_value(self, value: str) -> bool:
+    def check_value(self) -> bool:
+        value = self.input().value
+
         if value:
             for term in value.split(','):
-                if term.find('-') != -1:
+                if term.count('-') == 1:
                     num1, num2 = term.split('-')
                     num1 = convert_number(num1)
                     num2 = convert_number(num2)
@@ -166,14 +173,6 @@ class TermInput(LabeledInput):
                             severity="error"
                         )
                         return False
-                    
-                    if num1 < 0 or num2 < 0:
-                        self.notify(
-                            f"({term}) contains negative integer(s)!",
-                            title="Negative Integer integer",
-                            severity="error"
-                        )
-                        return False
 
                     if num1 > num2:
                         self.notify(
@@ -182,29 +181,39 @@ class TermInput(LabeledInput):
                             severity="error"
                         )
                         return False
+                elif term.count('-') > 1:
+                    self.notify(
+                            f"({term}) doesn't contain valid integer(s)!",
+                            title="Invalid Integer Error",
+                            severity="error"
+                        )
+                    return False      
   
                 else:
                     num = convert_number(term)
                     if num == None:
                         self.notify(
-                            f"({num}) isn't a valid integer!",
+                            f"({term}) isn't a valid integer!",
                             title="Invalid Integer Error",
                             severity="error"
                         )
                         return False
-                    
-                    if num < 0:
-                        self.notify(
-                            f"({num}) is a negative integer!",
-                            title="Negative Integer integer",
-                            severity="error"
-                        )
-                        return False
+                
+                
                     
         return True
 
     def is_valid(self) -> bool:
-        ...
+        if self.check_value():
+            if self.required and self.is_empty():
+                self.input().focus()
+                return False
+            return True
+        
+        self.input().focus()
+        return False
+
+
 
 class FunctionCard(Center):
     """A class for a custom widget to receive function credentials from user."""
@@ -266,4 +275,14 @@ class FunctionCard(Center):
         self.post_message(self.Delete(self))
 
     def is_valid(self) -> bool:
-        return self.query_exactly_one(FunctionNameInput).is_valid()
+        if self.query_exactly_one(FunctionNameInput).is_valid():
+
+            for term_input in self.query(TermInput):
+                if not term_input.is_valid():
+                    return False
+            return True
+        
+        return False
+    
+    def truth_values(self) -> set[int]:
+        ...

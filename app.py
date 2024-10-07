@@ -87,6 +87,8 @@ class BooleanExpressionGenerator(App):
             if not func_card.is_valid():
                 valid = False
                 break
+        
+        if valid: self.notify(str(valid))
 
     
     def on_begwelcome_get_started(self) -> None:
