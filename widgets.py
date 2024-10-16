@@ -54,7 +54,7 @@ class BEGWelcome(Static):
 
     def compose(self) -> ComposeResult:
         yield Markdown(self.WELCOME_MD)
-        yield Button("Get Statrted", "primary")
+        yield Button("Get Statrted", "primary", id="get-started")
 
     def on_button_pressed(self) -> None:
         self.post_message(self.GetStarted())
@@ -301,7 +301,7 @@ class FunctionCard(Center):
             
             return ones_indexes
 
-class Function(Static):
-
-    def __init__(self, name: str, ones_indexes: set[int]) -> None:
-        ...
+class BoolFunction(Static):
+    ...
+    # def __init__(self, name: str, ones_indexes: set[int]) -> None:
+    #     ...
