@@ -1,6 +1,5 @@
 from textual.app import ComposeResult
 from textual.widgets import Static, Markdown, Button
-from textual.message import Message
 
 class BEGWelcome(Static):
 
@@ -13,9 +12,10 @@ class BEGWelcome(Static):
 - Generate Truth Tables instantly.
 
 ### *Key Shortcuts*:
-- `ctrl+a`: Add new Function Card
+- `ctrl+n`: Add new Function Card
 - `ctrl+r`: Reset to default
-- `ctrl+g`: Generate Functions and Truth Table
+- `ctrl+g`: Generate Functions
+- `ctrl+q`: Quit the application
 """
 
     DEFAULT_CSS = """
@@ -24,10 +24,11 @@ class BEGWelcome(Static):
             padding-top: 1;
             padding-bottom: -1;
             border: panel $primary;
-            
+
             Markdown {
                 background: $boost;
                 padding: -1 2 0 2;
+                height: 1fr;
             }
 
             Button {

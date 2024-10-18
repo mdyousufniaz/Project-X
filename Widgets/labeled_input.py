@@ -1,7 +1,3 @@
-from .notify_max_length_input import NotifyMaxLengthInput
-from textual.containers import Container
-from textual.css.query import DOMQuery
-from textual.validation import Function
 from textual.widgets import Input
 
 class LabeledInput(Input):
@@ -17,11 +13,7 @@ class LabeledInput(Input):
         }
     """
 
-
     def __init__(self, label: str, placeholder: str) -> None:
         super().__init__(placeholder=placeholder)
         self.border_title = label
-
-
-    
-    
+        

@@ -7,6 +7,7 @@ from textual.message import Message
 
 from .function_name_input import FunctionNameInput
 from .term_input import TermInput
+from .label_with_button import LabelWithButton
 
 class FunctionCard(Center):
     """A class for a custom widget to receive function credentials from user."""
@@ -18,20 +19,6 @@ class FunctionCard(Center):
                 width: 70%;
                 height: auto;
                 margin: 1;
-                padding-top: 1;
-                Horizontal {
-                    height: 3;
-                    padding-left: 2;
-                    align-vertical: middle;
-
-                    Label {
-                        color: $secondary;
-                    }
-
-                    Button {
-                        dock: right;
-                    }
-                }
 
                 LabeledInput {
                     margin: 1 0;
@@ -53,9 +40,7 @@ class FunctionCard(Center):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            with Horizontal():
-                yield Label("Function Card")
-                yield Button("Delete", variant="error")
+            yield LabelWithButton("Function Card", "Delete")
             yield FunctionNameInput()
             yield TermInput("Min Terms", "terms like 1 - 3, 4 - 7, 8, 10")
             yield TermInput("Don't Care Terms", "terms like 10 - 13, 14 - 16, 18")
@@ -81,19 +66,3 @@ class FunctionCard(Center):
 
         return False
     
-    def truth_indices(self) -> set[int]:
-        ones_indexes: set[int] = set()
-
-        for term in self.query(TermInput):
-            for literal in term.input().value.split(','):
-                if literal.find('-') != -1:
-                    num1, num2 = literal.split('-')
-                    ones_indexes.update(range(
-                        int(num1),
-                        int(num2) + 1
-                    ))
-
-                else:
-                    ones_indexes.add(int(literal))
-            
-            return ones_indexes

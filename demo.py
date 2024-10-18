@@ -2,8 +2,8 @@ from sympy import symbols, Or, And, simplify_logic
 from math import ceil, log2
 
 # Step 1: Define the minterms and don't care terms
-minterm_indexes = [0, 3]
-dont_care_indexes = []
+minterm_indexes = []
+dont_care_indexes = [0, 1]
 
 # Step 2: Determine the number of variables required
 max_index = max(minterm_indexes + dont_care_indexes)

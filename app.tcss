@@ -1,0 +1,16 @@
+.banner {
+    height: 3;
+    padding-left: 2;
+    align-vertical: middle;
+    margin: 1;
+    background: $panel;
+    Label {
+        text-style: bold;
+        color: $secondary;
+    }
+
+    Button {
+        margin-right: 1;
+        dock: right;
+    }
+}

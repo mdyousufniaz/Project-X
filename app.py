@@ -1,11 +1,16 @@
 from textual.app import App, ComposeResult
-from textual.widgets import TabbedContent, TabPane, Button, Placeholder, Header, Footer, Static, Select
+from textual.widgets import TabbedContent, TabPane, Button, Label, Header, Footer, Static, Select
 from textual.containers import ScrollableContainer, Center, Horizontal, Vertical
-from textual import on
+from textual import on, work
 from textual.binding import Binding
 from textual.css.query import DOMQuery, NoMatches
 
-from widgets import FunctionCard, BEGWelcome
+from Widgets.beg_welcome import BEGWelcome
+from Widgets.function_card import FunctionCard
+from Widgets.label_with_button import LabelWithButton
+from Widgets.nothing_to_show import NothingToShow
+
+from Screens.prompt_screen import PromptScreen
 
 class BooleanExpressionGenerator(App):
     """
@@ -14,13 +19,16 @@ class BooleanExpressionGenerator(App):
     """
 
     BINDINGS = [
-        Binding('ctrl+a', "add_function_card", "Add Function Card", priority=True, tooltip="Add a new Function Card"),
+        Binding('ctrl+n', "add_function_card", "Add Function Card", tooltip="Add a new Function Card"),
         Binding('ctrl+r', "reset_terms_tab", "Reset", tooltip="Reset to Default"),
-        Binding('ctrl+g', "generate_functions", "Generate", tooltip="Generate boolean Functions")
+        Binding('ctrl+g', "generate_functions", "Generate", tooltip="Generate boolean Functions"),
+        Binding('ctrl+q', "quit", "Quit", tooltip="Quit the application")
     ]
+
 
     TITLE = "Boolean Expression Generator"
     SUB_TITLE = "An App to generate boolean Functions!"
+    CSS_PATH = "app.tcss"
 
     CSS = """
     Screen {
@@ -31,6 +39,7 @@ class BooleanExpressionGenerator(App):
         }
     }
     """
+
     def compose(self) -> ComposeResult:
         yield Header()
         with TabbedContent():
@@ -39,17 +48,29 @@ class BooleanExpressionGenerator(App):
                     yield BEGWelcome()
 
             with TabPane("Boolean Expression", id="boolean-exp"):
-                yield Placeholder("Bool")
+                with Horizontal(classes='banner'):
+                    yield Label("Expressions")
+                    yield Button(
+                        "Truth Table",
+                        "primary",
+                        disabled=True,
+                        id="truth-table",
+                        tooltip="Press to generate Truth Table"
+                    )
+                with ScrollableContainer(id="exp-body"):
+                    yield NothingToShow("go_to_terms")
         yield Footer()
 
-    def term_body(self) -> DOMQuery[ScrollableContainer]:
+
+
+    def term_body(self) -> DOMQuery[ScrollableContainer] | None:
         return self.query_exactly_one("#term-body", ScrollableContainer)
     
     def welcome(self) -> DOMQuery[BEGWelcome] | None:
         try:
             return self.term_body().query_exactly_one(BEGWelcome)
         except NoMatches:
-            return None
+            pass
 
 
     def action_add_function_card(self) -> None:
@@ -72,12 +93,18 @@ class BooleanExpressionGenerator(App):
     def func_cards(self) -> DOMQuery[FunctionCard]:
         return self.query(FunctionCard)
     
-    def action_reset_terms_tab(self) -> None:
+    @work
+    async def action_reset_terms_tab(self) -> None:
+        if await self.push_screen_wait(PromptScreen('reset')):
+            func_cards = self.func_cards()
+            if func_cards:
+                func_cards.remove()
+                self.term_body().mount(BEGWelcome())
 
-        func_cards = self.func_cards()
-        if func_cards:
-            func_cards.remove()
-            self.term_body().mount(BEGWelcome())
+    @work    
+    async def action_quit(self) -> None:
+        if await self.push_screen_wait(PromptScreen('quit')):
+            self.exit()
         
 
     def action_generate_functions(self) -> None:
@@ -92,11 +119,25 @@ class BooleanExpressionGenerator(App):
             for func_card in self.func_cards():
                 print(func_card.truth_indices())
 
-    
-    def on_begwelcome_get_started(self) -> None:
+    @on(Button.Pressed, '#get-started')
+    def get_started(self) -> None:
         self.query_exactly_one(BEGWelcome).remove()
         self.action_add_function_card()
 
+    def on_tabbed_content_tab_activated(self):
+        self.refresh_bindings()
+
+    def check_action(self, action: str, parameters:tuple[object, ...]) -> bool | None:
+        if action in ("add_function_card", "reset_terms_tab", "generate_functions"):
+            try:
+                if self.query_exactly_one(TabbedContent).active != 'terms':
+                    return None
+            except NoMatches:
+                pass
+        return True
+
+    def action_go_to_terms(self) -> None:
+        self.query_exactly_one(TabbedContent).active = 'terms'
     
 
 if __name__ == "__main__":

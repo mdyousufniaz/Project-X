@@ -56,3 +56,18 @@ class TermInput(LabeledInput):
             return True
         self.focus()
         return False
+    
+    def truth_indices(self) -> set[int]:
+        ones_indexes: set[int] = set()
+
+        for literal in self.value.split(','):
+            if literal.find('-') != -1:
+                num1, num2 = literal.split('-')
+                ones_indexes.update(range(
+                    int(num1),
+                    int(num2) + 1
+                ))
+            else:
+                ones_indexes.add(int(literal))
+        
+        return ones_indexes
