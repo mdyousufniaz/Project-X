@@ -3,11 +3,22 @@ from sympy.logic import POSform
 
 from math import ceil, log2
 
-minterm_indexes = [0, 1, 2]
+minterm_indexes = []
 dont_care_indexes = []
 
+indexes = minterm_indexes + dont_care_indexes
+
+if indexes:
+    max_index = max(minterm_indexes + dont_care_indexes)
+
+    if max_index == 0:
+        max_index = 1
+else:
+    max_index = 1
+
+
 variables = symbols(
-        f'x0:{ceil(log2(max(minterm_indexes + dont_care_indexes) + 1))}'
+        f'x0:{ceil(log2(max_index + 1))}'
     )[::-1]
 
 print(variables)
@@ -17,5 +28,3 @@ print(POSform(
     minterm_indexes,
     dont_care_indexes
 ))
-
-print(symbols('x0:0'))
