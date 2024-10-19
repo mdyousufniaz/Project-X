@@ -3,7 +3,7 @@ from sympy.logic import POSform
 
 from math import ceil, log2
 
-minterm_indexes = []
+minterm_indexes = [0]
 dont_care_indexes = []
 
 indexes = minterm_indexes + dont_care_indexes
@@ -23,8 +23,8 @@ variables = symbols(
 
 print(variables)
 
-print(POSform(
+print(type(POSform(
     variables,
     minterm_indexes,
     dont_care_indexes
-))
+)))

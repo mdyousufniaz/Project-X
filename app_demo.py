@@ -2,6 +2,8 @@ from textual.app import App, ComposeResult
 from textual.containers import ScrollableContainer, Vertical
 from textual.widgets import Markdown, Static, TabbedContent, TabPane
 
+from Widgets.expression import Expression
+
 
 class NothingToShow(Vertical):
     def __init__(self, action_name: str) -> None:
@@ -19,7 +21,7 @@ class MyApp(App):
     def compose(self) -> ComposeResult:
         with TabbedContent():
             with TabPane("Leto", id="leto"):
-                yield Markdown("LETO")
+                yield Expression('Test', (0, 1), ())
             with TabPane("Jessica", id="jessica"):
                 yield Markdown("JESSICA")
             with TabPane("Paul", id="paul"):
