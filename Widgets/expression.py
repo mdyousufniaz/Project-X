@@ -19,6 +19,10 @@ class Expression(Horizontal):
                 width: auto;
                 text-style: italic;
             }
+
+            #exp {
+                text-style: bold;
+            }
         }
         
     """
@@ -41,8 +45,37 @@ class Expression(Horizontal):
         else: 
             max_index = 1
 
-        return SOPform(
+        expression = SOPform(
             symbols(f'x0:{ceil(log2(max_index + 1))}')[::-1],
             self.min_terms,
             self.dont_care_terms
         ).__str__()
+
+        match(expression):
+            case 'True':
+                return '1'
+            case 'False':
+                return '0'
+            case _:
+                new_expression = ""
+                not_flag = False
+                for ch in expression:
+                    if not_flag and ch == ' ':
+                            not_flag = False
+                            new_expression += "'"
+                    else:
+                        match(ch):    
+                            case '(' | ')' | ' ':
+                                continue
+                            case '&':
+                                new_ch = '·'
+                            case '|':
+                                new_ch = " + "
+                            case '~':
+                                not_flag = True
+                                continue
+                            case _:
+                                new_ch = ch
+                        new_expression += new_ch
+
+                return new_expression
